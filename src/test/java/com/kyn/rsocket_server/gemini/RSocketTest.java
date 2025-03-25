@@ -1,5 +1,8 @@
 package com.kyn.rsocket_server.gemini;
 
+import java.net.URI;
+import java.time.Duration;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +17,7 @@ import com.kyn.rsocket_server.gemini.dto.GeminiResponseDto;
 
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -21,47 +25,44 @@ import reactor.test.StepVerifier;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RSocketTest {
 
-    private RSocketRequester requester;
+        private RSocketRequester requester;
 
-    @Autowired
-    private RSocketRequester.Builder builder;
+        @Autowired
+        private RSocketRequester.Builder builder;
 
-    @BeforeAll
-    public void setup() {
-        this.requester = this.builder
-                .transport(WebsocketClientTransport.create("localhost", 8081));
-    }
+        @BeforeAll
+        public void setup() {
+                this.requester = this.builder
+                                .transport(WebsocketClientTransport
+                                                .create(URI.create("ws://localhost:8081/rsocket")));
+        }
 
-    @Test
-    public void gemini1() {
-        Mono<GeminiResponseDto> mono = this.requester.route("gemini.generate")
-                .data("hello gemini")
-                .retrieveMono(GeminiResponseDto.class);
+        @Test
+        public void geminiTest() {
+                Mono<GeminiResponseDto> mono = this.requester.route("gemini.generate")
+                                .data("hello gemini")
+                                .retrieveMono(GeminiResponseDto.class);
 
-        StepVerifier.create(mono)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
+                StepVerifier.create(mono)
+                                .expectNextCount(1)
+                                .verifyComplete();
+        }
 
-    @Test
-    public void gemini2() {
-        Mono<String> mono = this.requester.route("gemini.generate2")
-                .data("prompt")
-                .retrieveMono(String.class);
+        @Test
+        public void geminiStream() {
+                System.out.println("geminiStream 테스트 시작...");
 
-        StepVerifier.create(mono)
-                .expectNext("텍스트 생성 응답: prompt")
-                .verifyComplete();
-    }
+                Flux<GeminiResponseDto> flux = this.requester.route("gemini.stream")
+                                .data("100자분량의 짧은 시")
+                                .retrieveFlux(GeminiResponseDto.class)
+                                .doOnNext(response -> System.out.println("스트림 응답 수신: " + response))
+                                .doOnError(error -> System.err.println("스트림 오류 발생: " + error.getMessage()));
 
-    @Test
-    public void gemini3() {
-        Mono<String> mono = this.requester.route("gemini.test")
-                .data("payloadpromptpayloadprompt")
-                .retrieveMono(String.class);
+                StepVerifier.create(flux)
+                                .expectNextCount(1)
+                                .thenCancel() // 스트림이므로 계속 데이터가 올 수 있어 취소
+                                .verify(Duration.ofSeconds(10));
 
-        StepVerifier.create(mono)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
+                System.out.println("geminiStream 테스트 완료!");
+        }
 }

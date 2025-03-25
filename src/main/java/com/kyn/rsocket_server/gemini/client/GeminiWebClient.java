@@ -10,6 +10,7 @@ import com.kyn.rsocket_server.gemini.dto.GeminiRequestDto;
 import com.kyn.rsocket_server.gemini.dto.GeminiResponseDto;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -48,23 +49,12 @@ public class GeminiWebClient {
                                 .doOnError(error -> log.error("Error generating content", error));
         }
 
-        public Mono<GeminiResponseDto> generateContent2(GeminiRequestDto request) {
-                return webClient.post()
-                                .uri("/models/{model}:generateContent?key={apiKey}", modelName, apiKey)
-                                .bodyValue(request)
-                                .retrieve()
-                                .bodyToMono(GeminiResponseDto.class)
-                                .doOnSuccess(response -> log.info("Generated content successfully"))
-                                .doOnError(error -> log.error("Error generating content", error));
-        }
-
-        public Mono<GeminiResponseDto> streamGenerateContent(GeminiRequestDto request) {
+        public Flux<GeminiResponseDto> streamGenerateContent(GeminiRequestDto request) {
                 return webClient.post()
                                 .uri("/models/{model}:streamGenerateContent?key={apiKey}", modelName, apiKey)
                                 .bodyValue(request)
                                 .retrieve()
-                                .bodyToMono(GeminiResponseDto.class)
-                                .doOnSuccess(response -> log.info("Streamed content successfully"))
+                                .bodyToFlux(GeminiResponseDto.class)
                                 .doOnError(error -> log.error("Error streaming content", error));
         }
 

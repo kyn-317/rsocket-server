@@ -22,7 +22,7 @@ public class GeminiRestController {
     @GetMapping("gemini/generate")
     public Mono<GeminiResponseDto> getMethodName(@RequestParam String param) {
         log.info("Received generate content request: {}", param);
-        return geminiService.generateContent2(param);
+        return geminiService.generateTextContent(param);
     }
 
 }

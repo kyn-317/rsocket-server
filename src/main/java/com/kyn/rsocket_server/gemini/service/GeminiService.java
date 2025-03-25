@@ -13,6 +13,7 @@ import com.kyn.rsocket_server.gemini.dto.Part;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -26,14 +27,8 @@ public class GeminiService {
         return geminiWebClient.generateContent(new GeminiRequestDto(prompt)).doOnNext(System.out::println);
     }
 
-    public Mono<GeminiResponseDto> streamTextContent(String prompt) {
+    public Flux<GeminiResponseDto> streamTextContent(String prompt) {
         return geminiWebClient.streamGenerateContent(new GeminiRequestDto(prompt));
     }
 
-    public Mono<GeminiResponseDto> generateContent2(String prompt) {
-
-        GeminiRequestDto request = new GeminiRequestDto(prompt);
-        log.info(request.toString());
-        return geminiWebClient.generateContent2(request);
-    }
 }

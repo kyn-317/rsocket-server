@@ -9,6 +9,7 @@ import com.kyn.rsocket_server.gemini.service.GeminiService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -24,21 +25,10 @@ public class GeminiController {
         return geminiService.generateTextContent(prompt);
     }
 
-    @MessageMapping("gemini.generate2")
-    public Mono<String> generateContentAsString(@Payload String prompt) {
-        log.info("Received generate content as string request: {}", prompt);
-        return Mono.just("텍스트 생성 응답: " + prompt);
-    }
-
     @MessageMapping("gemini.stream")
-    public Mono<GeminiResponseDto> streamContent(@Payload String prompt) {
+    public Flux<GeminiResponseDto> streamContent(@Payload String prompt) {
         log.info("Received stream content request: {}", prompt);
         return geminiService.streamTextContent(prompt);
     }
 
-    @MessageMapping("gemini.test")
-    public Mono<String> test(@Payload String prompt) {
-        log.info("Received test request: {}", prompt);
-        return Mono.just("테스트 성공! 입력: " + prompt);
-    }
 }
