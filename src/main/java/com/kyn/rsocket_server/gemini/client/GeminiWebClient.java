@@ -55,6 +55,7 @@ public class GeminiWebClient {
                                 .bodyValue(request)
                                 .retrieve()
                                 .bodyToFlux(GeminiResponseDto.class)
+                                .doOnNext(response -> log.info("Generated content successfully " + response))
                                 .doOnError(error -> log.error("Error streaming content", error));
         }
 
